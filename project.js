@@ -26,7 +26,7 @@ const SYMBOL_VALUES = {
 }
 
 const deposit = () => {
-    while (1) {
+    while (true) {
         const depositAmount = prompt("Enter a deposit amount: ")
         const numberDepositAmount = parseFloat(depositAmount);
 
@@ -39,8 +39,8 @@ const deposit = () => {
 }
 
 const getNumberOfLines = () => {
-    while (1) {
-        const lines = prompt("Enter the number of linest to bet on (1-3): ")
+    while (true) {
+        const lines = prompt("Enter the number of lines to bet on (1-3): ")
         const numberOfLines = parseFloat(lines);
 
         if (isNaN(numberOfLines) || (numberOfLines <= 0) || (numberOfLines > 3)) {
@@ -53,7 +53,7 @@ const getNumberOfLines = () => {
 }
 
 const getBet = (balance, lines) => {
-    while (1) {
+    while (true) {
         const bet = prompt("Enter the total bet per line : ");
         const numberBet = parseFloat(bet);
 
@@ -67,6 +67,19 @@ const getBet = (balance, lines) => {
 
 const spin = () => {
     const symbols = [];
+    /*
+    Mivel a SYMBOL_COUNT csak itt van használva lehet célszerűbb igy:
+    Felül deklaráció:
+    const SYMBOL_MAP = {
+        "A", "A",
+        "B", "B", "B", "B",
+        "C", "C", "C", "C", "C", "C",
+        "D", "D", "D", "D", "D", "D", "D", "D"
+    }
+
+    dupla for ciklus elkerülése végett itt:
+    symbols = [...SYMBOL_MAP] -> sőt ez sem szükséges, elég 91.-sorban lecserélni const reelSymbols = [...SYMBOL_MAP]
+    */
     for (const [symbol, count] of Object.entries(SYMBOL_COUNT)) {
         for (let i = 0; i < count; ++i) {
             symbols.push(symbol);
@@ -74,10 +87,10 @@ const spin = () => {
     }
 
     const reels = [];
-    for (let i = 0; i < COLS; ++i) {
-        reels.push([]);
+    for (let i = 0; i < COLS; ++i) { //for (let i = 1; i < COLS; i++) jobb itt, mert 10ből 9 programozó i++-t használ nem ++i-t
+        reels.push([]); //?
         const reelSymbols = [...symbols];
-        for (let j = 0; j < ROWS; ++j) {
+        for (let j = 0; j < ROWS; ++j) { //szintén j++ -os legyen
             const randomIndex = Math.floor(Math.random() * reelSymbols.length)
             const selectSymbol = reelSymbols[randomIndex]
             reels[i].push(selectSymbol);
@@ -91,9 +104,9 @@ const spin = () => {
 const transpose = (reels) => {
     const rows = [];
 
-    for (let i = 0; i < ROWS; ++i) {
+    for (let i = 0; i < ROWS; ++i) { //szintén i++
         rows.push([]);
-        for (let j = 0; j < COLS; ++j) {
+        for (let j = 0; j < COLS; ++j) { //szintén j++
             rows[i].push(reels[j][i])
         }
     }
@@ -105,20 +118,20 @@ const printRows = (rows) => {
         let rowString = "";
         for (const [i, symbol] of row.entries()) {
             rowString += symbol;
-            if (i != row.length -1) {
+            if (i != row.length - 1) {
                 rowString += " | ";
             }
         }
-        console.log(rowString);
+        console.log(rowString); //logolásnál érdemes commentezni hogy tudjad mit logol: console.log("Row String: " + rowString)
     }
 }
 
 const getWinnings = (rows, bet, lines) => {
     let winnings = 0;
 
-    for (let row = 0; row < lines; ++row) {
+    for (let row = 0; row < lines; ++row) { //row++
         const symbols = rows[row];
-        let allSame = true;
+        let allSame = true; //isAllSame jobb név általában is prefixet használunk boolean-nál
 
         for (const symbol of symbols) {
             if (symbol != symbols[0]) {
@@ -126,6 +139,13 @@ const getWinnings = (rows, bet, lines) => {
                 break;
             }
         }
+        //kezdj el barátkozni a funkcionális programozással
+        /*
+            funckionális stilusban:
+            allSame = symbols.every((symbol) => symbol == symbols[0])
+            //checks whether all elements in the array pass the test implemented by the provided function
+            amint látod sokkal átláthatóbb és könnyebben értelmezhető mint egy for benne egy if-el
+        */
 
         if (allSame) {
             winnings += bet * SYMBOL_VALUES[symbols[0]];
@@ -138,8 +158,7 @@ const getWinnings = (rows, bet, lines) => {
 const game = () => {
     let balance = deposit();
 
-    while (1) {
-
+    while (true) {
         console.log("You have a balance of $" + balance);
         const numberOfLines = getNumberOfLines();
         const bet = getBet(balance, numberOfLines);
@@ -149,7 +168,7 @@ const game = () => {
         printRows(rows);
         const winnings = getWinnings(rows, bet, numberOfLines);
         balance += winnings;
-        console.log("You won, $" + winnings.toString());
+        console.log("You won, $" + winnings);
 
         if (balance <= 0) {
             console.log("You ran out of money!");
@@ -159,8 +178,29 @@ const game = () => {
         const playAgain = prompt("Do you wana play again? (y/n) ");
 
         if (playAgain != "y") break;
-
     }
+
+    //igy szebb lenne, kevesebb beágyazás, mert - 1 if:
+    /*
+    while (balance > 0) {
+        console.log("You have a balance of $" + balance);
+        const numberOfLines = getNumberOfLines();
+        const bet = getBet(balance, numberOfLines);
+        balance -= bet * numberOfLines;
+        const reels = spin();
+        const rows = transpose(reels);
+        printRows(rows);
+        const winnings = getWinnings(rows, bet, numberOfLines);
+        balance += winnings;
+        console.log("You won, $" + winnings);
+        
+        const playAgain = prompt("Do you wana play again? (y/n) ");
+
+        if (playAgain != "y") return;
+    }
+    
+    console.log("You ran out of money!");
+    */
 }
 
 game();
